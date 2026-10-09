@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { useCommerce } from '../../context/CommerceContext';
 import { Product } from '../../types';
-import { Plus, Search, Filter, Edit, Trash2, ExternalLink, AlertTriangle, Check, ArrowUpDown } from 'lucide-react';
+import { Plus, Search, Filter, Edit, Trash2, ExternalLink, AlertTriangle, Check, ArrowUpDown, Upload, Download } from 'lucide-react';
+import { ProductCsvImportModal } from './ProductCsvImportModal';
+import { exportProductsToCSV } from '../../utils/csvExport';
 
 interface ProductsManagerProps {
   onOpenAddProduct: () => void;
@@ -9,13 +11,14 @@ interface ProductsManagerProps {
 }
 
 export const ProductsManager: React.FC<ProductsManagerProps> = ({ onOpenAddProduct, onEditProduct }) => {
-  const { products, deleteProduct, adjustStock, setViewMode } = useCommerce();
+  const { products, deleteProduct, adjustStock, setViewMode, showToast } = useCommerce();
 
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedStockFilter, setSelectedStockFilter] = useState<'all' | 'instock' | 'lowstock' | 'outofstock'>('all');
   const [editingStockId, setEditingStockId] = useState<string | null>(null);
   const [inlineStockVal, setInlineStockVal] = useState<number>(0);
+  const [isCsvImportOpen, setIsCsvImportOpen] = useState(false);
 
   // Categories list
   const categories = ['all', ...Array.from(new Set(products.map((p) => p.category)))];
@@ -42,6 +45,11 @@ export const ProductsManager: React.FC<ProductsManagerProps> = ({ onOpenAddProdu
     setEditingStockId(null);
   };
 
+  const handleExportProducts = () => {
+    exportProductsToCSV(filteredProducts);
+    showToast(`Exported ${filteredProducts.length} products to CSV.`);
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -49,11 +57,32 @@ export const ProductsManager: React.FC<ProductsManagerProps> = ({ onOpenAddProdu
         <div>
           <h2 className="text-xl font-bold tracking-tight text-neutral-900">Products Catalog</h2>
           <p className="text-xs text-neutral-500">
-            Manage your store catalog, multiple product photography, SKU variants, and live pricing.
+            Manage your store catalog, bulk CSV imports, multiple product photography, SKU variants, and live pricing.
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          {/* Bulk CSV Import Button */}
+          <button
+            onClick={() => setIsCsvImportOpen(true)}
+            className="flex items-center gap-1.5 px-3 py-2 bg-white hover:bg-neutral-50 text-neutral-700 border border-neutral-300 rounded-md text-xs font-medium shadow-xs transition-colors"
+            title="Bulk import products from CSV spreadsheet"
+          >
+            <Upload className="w-3.5 h-3.5 text-violet-600" />
+            <span>Import CSV</span>
+          </button>
+
+          {/* Export CSV Button */}
+          <button
+            onClick={handleExportProducts}
+            className="flex items-center gap-1.5 px-3 py-2 bg-white hover:bg-neutral-50 text-neutral-700 border border-neutral-300 rounded-md text-xs font-medium shadow-xs transition-colors"
+            title="Export products catalog to CSV"
+          >
+            <Download className="w-3.5 h-3.5 text-neutral-500" />
+            <span>Export CSV ({filteredProducts.length})</span>
+          </button>
+
+          {/* Add Product Button */}
           <button
             onClick={onOpenAddProduct}
             className="flex items-center gap-1.5 px-3.5 py-2 bg-neutral-900 hover:bg-neutral-800 text-white rounded-md text-xs font-semibold shadow-xs transition-colors"
@@ -265,6 +294,12 @@ export const ProductsManager: React.FC<ProductsManagerProps> = ({ onOpenAddProdu
           </table>
         </div>
       </div>
+
+      {/* Bulk CSV Product Import Modal */}
+      <ProductCsvImportModal
+        isOpen={isCsvImportOpen}
+        onClose={() => setIsCsvImportOpen(false)}
+      />
     </div>
   );
 };

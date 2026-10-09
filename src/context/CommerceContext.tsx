@@ -22,6 +22,7 @@ interface CommerceContextType {
   // Products & Inventory
   products: Product[];
   addProduct: (product: Omit<Product, 'id' | 'createdAt'>) => Product;
+  bulkAddProducts: (newProducts: Omit<Product, 'id' | 'createdAt'>[]) => number;
   updateProduct: (id: string, updates: Partial<Product>) => void;
   deleteProduct: (id: string) => void;
   adjustStock: (id: string, newQuantity: number) => void;
@@ -191,6 +192,19 @@ export const CommerceProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     setProducts((prev) => [newProduct, ...prev]);
     showToast(`Product "${newProduct.name}" added to catalog.`);
     return newProduct;
+  };
+
+  const bulkAddProducts = (newProductsData: Omit<Product, 'id' | 'createdAt'>[]): number => {
+    if (newProductsData.length === 0) return 0;
+    const now = new Date().toISOString();
+    const created: Product[] = newProductsData.map((data, idx) => ({
+      ...data,
+      id: `prod-${Date.now()}-${idx}`,
+      createdAt: now,
+    }));
+    setProducts((prev) => [...created, ...prev]);
+    showToast(`Bulk imported ${created.length} products to Digital Coyotes catalog.`);
+    return created.length;
   };
 
   const updateProduct = (id: string, updates: Partial<Product>) => {
@@ -612,6 +626,7 @@ export const CommerceProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         setSelectedOrderIdForDetail,
         products,
         addProduct,
+        bulkAddProducts,
         updateProduct,
         deleteProduct,
         adjustStock,
