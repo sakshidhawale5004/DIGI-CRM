@@ -1,0 +1,6 @@
+{
+  "name": "WooCommerce CRM & Store Studio",
+  "description": "Full-featured WooCommerce-inspired commerce suite and CRM with custom themes, multi-image product catalog, inventory tracking, customer LTV management, and a seamless checkout experience.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
